@@ -67,7 +67,17 @@ jobs:
           run: C:/msys64/msys2_shell.cmd -defterm -here -no-start -ucrt64 -c "pacman -Sy --noconfirm --needed mingw-w64-ucrt-x86_64-binutils; pacman -S --noconfirm --needed mingw-w64-ucrt-x86_64-tools || pacman -S --noconfirm --needed mingw-w64-ucrt-x86_64-tools-git"
         - name: Generate .def file
           working-directory: sdrpp_lib/sdrpp_windows_x64
-          run: C:/msys64/msys2_shell.cmd -defterm -here -no-start -ucrt64 -c "gendef sdrpp_core.dll"
+          shell: pwsh
+          run: |
+            # gendef's C++ demangler warns and returns non-zero on modern MSVC
+            # mangling ($$Q rvalue-refs, etc.) but still emits every export, with
+            # DATA symbols correctly marked. Tolerate the exit code, then verify a
+            # substantial .def was actually produced.
+            C:/msys64/msys2_shell.cmd -defterm -here -no-start -ucrt64 -c "gendef sdrpp_core.dll || true"
+            if (-not (Test-Path sdrpp_core.def)) { Write-Error 'gendef produced no sdrpp_core.def'; exit 1 }
+            $lines = (Get-Content sdrpp_core.def | Measure-Object -Line).Lines
+            Write-Host "sdrpp_core.def has $lines lines"
+            if ($lines -lt 500) { Write-Error "sdrpp_core.def unexpectedly small ($lines lines)"; exit 1 }
         - name: Generate .lib file
           working-directory: sdrpp_lib/sdrpp_windows_x64
           # run: |
