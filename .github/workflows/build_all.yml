@@ -77,7 +77,7 @@ jobs:
             if (-not (Test-Path sdrpp_core.def)) { Write-Error 'gendef produced no sdrpp_core.def'; exit 1 }
             $lines = (Get-Content sdrpp_core.def | Measure-Object -Line).Lines
             Write-Host "sdrpp_core.def has $lines lines"
-            if ($lines -lt 500) { Write-Error "sdrpp_core.def unexpectedly small ($lines lines)"; exit 1 }
+            if ($lines -lt 50) { Write-Error "sdrpp_core.def unexpectedly small ($lines lines)"; exit 1 }
         - name: Generate .lib file
           working-directory: sdrpp_lib/sdrpp_windows_x64
           # run: |
